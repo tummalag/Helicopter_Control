@@ -20,45 +20,53 @@ C = [   0    ;
       -0.02  ;
         0    ];
     
-Q = [ 0  0  0  0 ;
+Q = [ 0.00001  0  0  0 ;
       0  0  0  0 ;
       0 0 0 0;
-      0 0 0 1];
+      0 0 0 0.00001];
   
-R =1;
-    
+R =1000000;
+
+z = 0; % hoizontal wind
+
+del = zeros(61,1);
+
+x = zeros(4,61);
+
 x(:,1) = [ 10  ;  % pitch angle 'theta' in rads 
          0   ;  % pitch angle rate in rads/sec
          0   ;  % horizontal vel 'u' in m/s,
          20  ]; % horzontal dist 'x' in m
-     
+        
 t = 61; % time 
 dt = 1; % time period
-
-z = 0; % hoizontal wind
-
 
 % System Equation:
 % Where, x is the state vector with the above components 
 % del is the rotor thrust angle in rads
 % z is the horizontal wind velocity in m/s
 
+S_i = cell(1,61);
+K = zeros(61,4);
+S_i{61} = [1 0 0 0;0 1 0 0;0 0 1 0;0 0 0 1];
+K(61,:) = [0,0,0,1];
 
-for i = 1:dt:t
-    x_d(:,t+1) = A*x(:,t) + B*del(:,t) + C*z;   
-    x(:,t+1)   =  x(:,t)  + dt* x_d(:,t+1);
-    %del(:,t+1) = -1*x_d(1,t+1);
+%  To calculate reccati equation from backwards
+for i = t:-dt:2
+    S_i{i-1} = (A')*S_i{i} + S_i{i}*A - S_i{i}*B*inv(R)*B'*S_i{i} + Q;
+    K(i-1,:) = inv(R)*B'*S_i{i};
 end
 
+% To calculate 'u' and bring to stable state
+for i = 1:dt:t
+    del(i,1) = -1*K(i,:)* x(:,i);
+    x(:,i+1) = A*x(:,i) + B*del(i,1);   
+    %x(:,i+1)   =  x(:,i)  + dt* x_d(:,i+1);
+end
 
-[K,S,P] = lqr(x_d,Q,R);
-
-K
-S
-P
-
+N =1:62;
 figure
-plot(t,x_d(1,:))
+plot(N,x(1,N),'-b')
 
 
 
