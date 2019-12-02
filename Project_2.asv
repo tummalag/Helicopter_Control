@@ -1,0 +1,75 @@
+% Helicopter Control 
+
+% Initialization
+clc;
+clear all;
+close all;
+
+A = [0   ,    1    ,    0    ,  0  ;
+     0   ,  -0.415 , -0.011  ,  0  ;
+     9.8 ,  -1.43  ,  -0.02  ,  0  ;
+     0   ,    0    ,    1    ,  0  ];
+     
+B = [  0   ;
+      6.27 ;        
+      9.8  ;
+       0   ];
+   
+C = [   0    ;
+      -0.011 ;
+      -0.02  ;
+        0    ];
+    
+Q = [ 0  0  0  0 ;
+      0  0  0  0 ;
+      0 0 0 0;
+      0 0 0 0.0001];
+  
+R =100000;
+
+x = zeros(4,61);
+x(:,1) = [ 10  ;  % pitch angle 'theta' in rads 
+         0   ;  % pitch angle rate in rads/sec
+         0   ;  % horizontal vel 'u' in m/s,
+         20  ]; % horzontal dist 'x' in m
+     
+del = zeros(61,1);
+     
+t = 61; % time 
+dt = 1; % time period
+
+z = 0; % hoizontal wind
+
+
+% System Equation:
+% Where, x is the state vector with the above components 
+% del is the rotor thrust angle in rads
+% z is the horizontal wind velocity in m/s
+
+S_i = cell(1,61);
+K = zeros(61,4);
+%[K,S,P] = lqr(A,B,Q,R);
+
+S_i{61} = S;
+K(61,:) = ;
+for i = t:-dt:2
+    S_i{i-1} = (A')*S_i{i} + S_i{i}*A - S_i{i}*B*inv(R)*B'*S_i{i} + Q;
+    K(i-1,:) = inv(R)*B'*S_i{i};
+
+end
+
+
+for i = 1:dt:t
+    del(i,1) = -1*K(i,:)* x(:,i);
+    x_d(:,i+1) = A*x(:,i) + B*del(i,1);   
+    x(:,i+1)   =  x(:,i)  + dt* x_d(:,i+1);
+    
+end
+
+figure
+plot(t,x(1,:))
+
+
+
+
+
