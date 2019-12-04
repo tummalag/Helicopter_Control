@@ -9,8 +9,6 @@ m = 1600;  % Mass in Kg
 Fe = 1385;  % Max. Engine Force in N
 Cd = 0.48;  % Aerodynamic drag coefficient in N-s/m
 Vmax = 53.75; % Max. vehicle speed in m/s
-dt = 1;
-
 
 % Reference speed to be tracked over [0,400]
 for t=1:100
@@ -29,13 +27,30 @@ for t = 301:375
 end
 r(376:400) = 0;
 
+% Initializing q,r,k
+q = 1;
+s = zeros(1,400);
+R = 1;
+a = -Cd/m;
+b = Fe/m;
+t = 400;
+dt = 1;
+x = zeros(1,400);
+v = zeros(1,400);
+% Defining Control system Backward in Time
+for i = t:-dt:2
+    s(i-1) = 2*a*s(i) -  b^2*s(i)^2/R + q;
+    v(i-1) = (a-b^2*s(i)/R)*v(i) + q*r(i);
+end
 
+for i = 1:dt:t-2
+    k(i) = b*s(i)/R;
+    u(i) = -k(i)*x(i) + b*v(i)/R;
+    x(i+2) = -a*(x(i+1)^2) + b*u(i);
+end
+n = 1:1:400;
 figure
-plot(r)
+plot(n,x,'-r',n,r,'-b')
 
-
-% System Equation
-
-%m*Sdd(t) = -*Cd*Sd(t)^2 + Fe*u(t)
 
 
