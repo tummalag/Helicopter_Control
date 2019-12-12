@@ -17,7 +17,7 @@ C = [   0    ;
       -0.011 ;
       -0.02  ;
         0    ];
-z = 50;              % hoizontal wind
+z = 0;              % hoizontal wind
 del = zeros(60,1); 
 del_r = 9;  
 x = zeros(4,60);
@@ -31,15 +31,15 @@ x(:,1) = [ 10   ;  % pitch angle 'theta' in rads
             0   ;  % horizontal vel 'u' in m/s,
            20  ];  % horzontal dist 'x' in m
 
-Q =  1000000*[10  0  0  0 ;
-               0  4  0  0 ;
-               0  0  50 0 ;
-               0  0  0  800];
+Q =  [10  0  0  0 ;
+       0  4  0  0 ;
+       0  0  50 0 ;
+       0  0  0  800];
   
 R =1000000000;
 
 t = 60;         % time 
-dt = 0.01;      % sampling time period
+dt = 0.001;      % sampling time period
 N =1:dt:t;
 n = length(N);
 
