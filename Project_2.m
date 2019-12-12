@@ -17,7 +17,7 @@ C = [   0    ;
       -0.011 ;
       -0.02  ;
         0    ];
-z = 0;              % hoizontal wind
+z = 50;              % hoizontal wind
 del = zeros(60,1); 
 del_r = 9;  
 x = zeros(4,60);
@@ -31,15 +31,15 @@ x(:,1) = [ 10   ;  % pitch angle 'theta' in rads
             0   ;  % horizontal vel 'u' in m/s,
            20  ];  % horzontal dist 'x' in m
 
-Q =  [10  0  0  0 ;
-       0  4  0  0 ;
-       0  0  50 0 ;
-       0  0  0  8];
+Q =  1000000*[10  0  0  0 ;
+               0  4  0  0 ;
+               0  0  50 0 ;
+               0  0  0  800];
   
-R =10000000;
+R =1000000000;
 
 t = 60;         % time 
-dt = 1;      % sampling time period
+dt = 0.01;      % sampling time period
 N =1:dt:t;
 n = length(N);
 
@@ -52,7 +52,7 @@ n = length(N);
 % To calculate 'u' and bring to stable state
 for i = 1:1:length(1:dt:t)
     del(i,1) = -K*x(:,i);
-    del(i,1) = min(max(del(i,1),-del_r),del_r);
+    del(i,1) =min(max(del(i,1),-del_r),del_r);
     y(:,i+1) = x(:,i) + dt*(A*x(:,i) + B*del(i,1) + C*z);   
     x(:,i+1) = min(max(y(:,i+1),-x_r),x_r);
 end
