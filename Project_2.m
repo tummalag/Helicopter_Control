@@ -1,9 +1,7 @@
 % Helicopter Control 
 
 % Initialization
-clc;
-clear all;
-close all;
+clc;clear all;close all;
 
 A = [0   ,    1    ,    0    ,  0  ;
      0   ,  -0.415 , -0.011  ,  0  ;
@@ -19,56 +17,71 @@ C = [   0    ;
       -0.011 ;
       -0.02  ;
         0    ];
-    
-Q = [ 0.00001  0  0  0 ;
-      0  0  0  0 ;
-      0 0 0 0;
-      0 0 0 0.00001];
+z = 0;              % hoizontal wind
+del = zeros(60,1); 
+del_r = 9;  
+x = zeros(4,60);
+% Reference Values
+x_r = [ 15 ;
+         8 ;
+         2 ; 
+        25];
+x(:,1) = [ 10   ;  % pitch angle 'theta' in rads 
+            0   ;  % pitch angle rate in rads/sec
+            0   ;  % horizontal vel 'u' in m/s,
+           20  ];  % horzontal dist 'x' in m
+
+Q =  [10  0  0  0 ;
+       0  4  0  0 ;
+       0  0  50 0 ;
+       0  0  0  8];
   
-R =1000000;
+R =10000000;
 
-z = 0; % hoizontal wind
+t = 60;         % time 
+dt = 1;      % sampling time period
+N =1:dt:t;
+n = length(N);
 
-del = zeros(61,1);
-
-x = zeros(4,61);
-
-x(:,1) = [ 10  ;  % pitch angle 'theta' in rads 
-         0   ;  % pitch angle rate in rads/sec
-         0   ;  % horizontal vel 'u' in m/s,
-         20  ]; % horzontal dist 'x' in m
-        
-t = 61; % time 
-dt = 1; % time period
+[K,S,P] = lqr(A,B,Q,R);
 
 % System Equation:
 % Where, x is the state vector with the above components 
 % del is the rotor thrust angle in rads
 % z is the horizontal wind velocity in m/s
-
-S_i = cell(1,61);
-K = zeros(61,4);
-S_i{61} = [1 0 0 0;0 1 0 0;0 0 1 0;0 0 0 1];
-K(61,:) = [0,0,0,1];
-
-%  To calculate reccati equation from backwards
-for i = t:-dt:2
-    S_i{i-1} = (A')*S_i{i} + S_i{i}*A - S_i{i}*B*inv(R)*B'*S_i{i} + Q;
-    K(i-1,:) = inv(R)*B'*S_i{i};
-end
-
 % To calculate 'u' and bring to stable state
-for i = 1:dt:t
-    del(i,1) = -1*K(i,:)* x(:,i);
-    x(:,i+1) = A*x(:,i) + B*del(i,1);   
-    %x(:,i+1)   =  x(:,i)  + dt* x_d(:,i+1);
+for i = 1:1:length(1:dt:t)
+    del(i,1) = -K*x(:,i);
+    del(i,1) = min(max(del(i,1),-del_r),del_r);
+    y(:,i+1) = x(:,i) + dt*(A*x(:,i) + B*del(i,1) + C*z);   
+    x(:,i+1) = min(max(y(:,i+1),-x_r),x_r);
 end
 
-N =1:62;
-figure
-plot(N,x(1,N),'-b')
+% Plots
+% The following plot represents the state variable
+subplot(2,2,1);
+plot(N,x(1,1:n),'-b')
+title('Plot 1: Pitch angle \theta "x1" ')
+subplot(2,2,2);
+plot(N,x(2,1:n),'-b')
+title('Plot 2: Pitch Angle rate "x2" ')
+subplot(2,2,3);
+plot(N,x(3,1:n),'-b')
+title('Plot 3: Horizontal velocity "x3" ')
+subplot(2,2,4);
+plot(N,x(4,1:n),'-b')
+title('Plot 4: Horizontal distance "x4" ')
 
+% The following plot represents the control value
+figure(2)
+plot(N,del(1:n,1),'-b')
+title('Plot 5: Rotor thrust angle "u" ')
 
-
-
+% This plot represents the poles of the system
+figure(3)
+plot(real(P),imag(P),'b*')
+title('Poles')
+ax = gca;
+ax.XAxisLocation = 'origin';
+ax.YAxisLocation = 'origin';
 
